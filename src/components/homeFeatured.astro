@@ -1,0 +1,53 @@
+---
+import type { CollectionEntry } from "astro:content";
+import { Icon } from "astro-icon/components";
+import { getPostUrl, getFileDirFromPath } from "@utils/url";
+import ImageWrapper from "@components/common/imageWrapper.astro";
+import { homeConfig } from "@/config";
+
+type Props = { posts: CollectionEntry<"posts">[] };
+const { posts } = Astro.props;
+const featured = posts.filter((post) => post.data.featured).slice(0, homeConfig.featured.count);
+if (!homeConfig.featured.enable || featured.length === 0) return null;
+---
+<section class="home-featured card-base" aria-label="推荐文章" style={`--featured-desktop:${homeConfig.featured.visibleDesktop};--featured-mobile:${homeConfig.featured.visibleMobile}`}>
+    <header class="home-featured-header">
+        <h2><Icon name="mdi:star-outline" aria-hidden="true" />{homeConfig.featured.title}</h2>
+        <div class="home-featured-nav">
+            <button type="button" class="home-featured-prev" aria-label="上一组文章"><Icon name="mdi:chevron-left" /></button>
+            <button type="button" class="home-featured-next" aria-label="下一组文章"><Icon name="mdi:chevron-right" /></button>
+        </div>
+    </header>
+    <div class="home-featured-viewport">
+        <div class="home-featured-track">
+            {featured.map((post) => (
+                <a class="home-featured-card" href={getPostUrl(post)} aria-label={`阅读全文：${post.data.title}`}>
+                    <div class="home-featured-cover">
+                        {post.data.cover ? (
+                            <ImageWrapper src={post.data.cover} basePath={getFileDirFromPath(post.filePath || "")} alt={post.data.title} class="w-full h-full" />
+                        ) : (
+                            <div class="home-featured-cover-fallback"><span>{post.data.title}</span></div>
+                        )}
+                    </div>
+                    <div class="home-featured-body"><h3>{post.data.title}</h3><p>{post.data.description}</p></div>
+                </a>
+            ))}
+        </div>
+    </div>
+</section>
+<script>
+    const init = () => document.querySelectorAll<HTMLElement>(".home-featured").forEach((root) => {
+        const viewport = root.querySelector<HTMLElement>(".home-featured-viewport");
+        const track = root.querySelector<HTMLElement>(".home-featured-track");
+        const prev = root.querySelector<HTMLButtonElement>(".home-featured-prev");
+        const next = root.querySelector<HTMLButtonElement>(".home-featured-next");
+        if (!viewport || !track || !prev || !next || track.children.length < 2) return;
+        const move = (direction: number) => viewport.scrollBy({ left: direction * viewport.clientWidth, behavior: "smooth" });
+        prev.onclick = () => move(-1); next.onclick = () => move(1);
+    });
+    init();
+    document.addEventListener("swup:contentReplaced", init);
+</script>
+<style>
+.home-featured{padding:1rem;margin-bottom:1rem;overflow:hidden}.home-featured-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}.home-featured-header h2{display:flex;align-items:center;gap:.45rem;margin:0;font-size:1.1rem;color:var(--deep-text)}.home-featured-header svg{color:var(--primary)}.home-featured-nav{display:flex;gap:.4rem}.home-featured-nav button{display:grid;place-items:center;width:2rem;height:2rem;border:1px solid var(--line-divider);border-radius:999px;color:var(--deep-text);background:var(--btn-regular-bg);cursor:pointer}.home-featured-viewport{overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}.home-featured-viewport::-webkit-scrollbar{display:none}.home-featured-track{display:flex;gap:.75rem}.home-featured-card{flex:0 0 calc((100% - (var(--featured-desktop) - 1)*.75rem)/var(--featured-desktop));scroll-snap-align:start;overflow:hidden;border:1px solid var(--line-divider);border-radius:var(--radius-large);background:var(--card-bg);text-decoration:none;transition:transform .2s,border-color .2s}.home-featured-card:hover{transform:translateY(-2px);border-color:var(--primary)}.home-featured-cover{aspect-ratio:16/9;background:linear-gradient(135deg,color-mix(in oklch,var(--primary),transparent 72%),var(--card-bg));background-size:cover;background-position:center}.home-featured-cover-fallback{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:1rem;background:linear-gradient(135deg,color-mix(in oklch,var(--primary),transparent 70%),var(--card-bg));color:color-mix(in oklch,var(--deep-text),transparent 18%);font-size:.8rem;font-weight:600;text-align:center}.home-featured-body{padding:.7rem}.home-featured-body h3{margin:0;color:var(--deep-text);font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.home-featured-body p{margin:.35rem 0 0;color:var(--content-meta);font-size:.78rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}@media(max-width:768px){.home-featured-card{flex-basis:calc((100% - (var(--featured-mobile) - 1)*.75rem)/var(--featured-mobile))}}
+</style>

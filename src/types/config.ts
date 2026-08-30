@@ -312,6 +312,31 @@ export type ProfileConfig = {
     }[];
 };
 
+export type AboutConfig = {
+    author: {
+        name: string;
+        avatar: string;
+        bio: string;
+    };
+    authorTags: {
+        left: string[];
+        right: string[];
+    };
+    manifesto: {
+        eyebrow: string;
+        title: string;
+        highlight: string;
+    };
+    skills: Array<{
+        name: string;
+        icon: string;
+    }>;
+    journey: {
+        eyebrow: string;
+        title: string;
+    };
+};
+
 
 // 公告配置
 export type AnnouncementConfig = {
@@ -348,6 +373,30 @@ export type SidebarConfig = {
     };
 };
 
+export type FriendsConfig = {
+    source: "remote" | "local";
+    remoteUrl: string;
+    graveyardUrl: string;
+    graveyardTitle: string;
+    graveyardDescription: string;
+    feedUrl?: string;
+};
+
+// 日记/说说数据源配置
+export type DiaryConfig = {
+    // 数据源 ("local" 本地 JSON | "ech0" 远程 Ech0 | "tg" 远程 TG)
+    source: "local" | "ech0" | "tg";
+    // Ech0 远程接口地址
+    ech0Url: string;
+    // TG 远程接口根地址
+    tgUrl?: string;
+    // Ech0 说说卡片显示名称
+    displayName: string;
+    // 每页条数
+    pageSize: number;
+    voteUrl?: string;
+};
+
 /**
  * 
  */
@@ -355,6 +404,22 @@ export type SidebarConfig = {
 
 // 评论服务提供商
 export type CommentProvider = "waline" |"twikoo";
+
+export type HomeConfig = {
+    featured: {
+        enable: boolean;
+        count: number;
+        visibleDesktop: number;
+        visibleMobile: number;
+        title: string;
+    };
+    spotlight: {
+        enable: boolean;
+        pinnedCount: number;
+        interval: number;
+        randomEnable: boolean;
+    };
+};
 
 // 文章配置
 export type PostConfig = {

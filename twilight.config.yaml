@@ -1,17 +1,17 @@
 # 站点配置
 site:
     # 站点 URL（以斜杠结尾）
-    siteURL: "https://twilight.spr-aachen.com/"
+    siteURL: "https://b.kemeow.top/"
     # 站点标题
-    title: "Twilight"
+    title: "喵洛阁"
     # 站点副标题
-    subtitle: "Blog Template"
+    subtitle: "克喵的小站~"
     # 语言配置
-    lang: "en"
+    lang: "zh_hans"
     # 翻译配置
     translate:
         # 启用翻译功能
-        enable: true
+        enable: false
         # 翻译服务
         service: "client.edge"
         # 显示语言选择下拉框
@@ -44,7 +44,7 @@ site:
         # 主题色的默认色相 (范围从 0 到 360。例如：红色：0，青色：200，蓝绿色：250，粉色：345)
         hue: 255
     # 默认主题 ("system" 跟随系统 | "light" 浅色 | "dark" 深色)
-    defaultTheme: "dark"
+    defaultTheme: "system"
     # 壁纸配置
     wallpaper:
         # 模式 ("banner" 横幅 | "fullscreen" 全屏 | "none" 纯色)
@@ -53,13 +53,16 @@ site:
         src:
             # 桌面壁纸图片 (相对于 /public 目录; 支持单张图片或图片数组，当数组长度 > 1 时自动启用轮播)
             desktop:
-                - "/assets/images/desktopWallpaper_1.jpg"
-                - "/assets/images/desktopWallpaper_2.jpg"
-                - "/assets/images/desktopWallpaper_3.jpg"
+                - "/assets/images/bg1-piclite.webp"
+                - "/assets/images/bg2-piclite.webp"
+                - "/assets/images/bg3-piclite.webp"
+                - "/assets/images/bg4-piclite.webp"
+                - "/assets/images/bg5-piclite.webp"
             # 移动壁纸图片 (相对于 /public 目录; 支持单张图片或图片数组，当数组长度 > 1 时自动启用轮播)
             mobile:
-                - "/assets/images/mobileWallpaper_1.jpg"
-                - "/assets/images/mobileWallpaper_2.jpg"
+                - "/assets/images/mbg1-piclite.webp"
+                - "/assets/images/mbg2-piclite.webp"
+                - "/assets/images/mbg3-piclite.webp"
         # 壁纸位置 ('top' | 'center' | 'bottom')
         position: "center"
         # 轮播配置 (fullscreen 和 banner 模式共享)
@@ -77,10 +80,10 @@ site:
                 # 在主页显示文本
                 enable: true
                 # 主标题
-                title: "Twilight"
+                title: "喵洛阁"
                 # 副标题，支持单个字符串或字符串数组
                 subtitle:
-                    - "Illuminate Our Paths"
+                    - "欢迎来到克喵的小站，这里记录着我的一些文字~"
                 # 副标题打字机效果
                 typewriter:
                     # 启用副标题打字机效果
@@ -108,7 +111,7 @@ site:
                 # 启用水波纹效果
                 enable: true
                 # 启用性能模式 (简化波浪效果以提升性能)
-                performanceMode: false
+                performanceMode: true
         # Fullscreen 模式专属配置
         fullscreen:
             # 层级
@@ -131,7 +134,7 @@ site:
             # 是否启用加载标题
             enable: true
             # 加载标题文本
-            content: "LOADING"
+            content: "LOADING..."
             # 动画周期 (s)
             interval: 1.5
         # 加载动画配置
@@ -141,24 +144,25 @@ site:
             # 动画周期 (s)
             interval: 1.5
     # favicon 配置
-    favicon: []
+    favicon:
+        - src: "/assets/images/favicon.ico"
     # bangumi 配置
     bangumi:
         # 用户 ID
-        userId: "your-bangumi-id"
+        userId: "kemiao"
     # OpenGraph 配置
     generateOgImages: false
 
 # 统计配置
 analytics:
     # 是否启用统计
-    enabled: false
+    enabled: true
     # 统计平台
     platform: "umami"
     # Umami 统计配置
     umami:
         # Umami API 地址
-        baseUrl: "https://api.umami.is"
+        baseUrl: "https://um.081531.xyz"
         # API 密钥
         apiKey: ''
         # Tracking code
@@ -196,7 +200,15 @@ navbar:
                 - # 二级导航链接 - 动画 (预设)
                     "Anime"
         - # 一级导航链接 - 好友 (预设)
-            "Friends"
+            name: "Friends"
+            url: "/friends/"
+            icon: "material-symbols:group"
+            description: "A curated list of friend sites."
+            children:
+                - name: "朋友圈"
+                  url: "/fcircle/"
+                  icon: "material-symbols:dynamic-feed"
+                  description: "友链朋友们最近分享的文章"
         - # 一级导航链接 - 关于 (预设)
             "About"
 
@@ -277,11 +289,11 @@ sidebar:
 # 资料配置
 profile:
     # 头像配置 (相对于 /public 目录)
-    avatar: "/assets/images/avatar.jpg"
+    avatar: "/assets/images/avatar.png"
     # 信息配置
-    name: "Twilight"
+    name: "克喵Moretti"
     # 简介配置
-    bio: "Hi"
+    bio: "每一段旅行，都有终点。"
     # 链接配置
     links:
         - # 链接示例
@@ -290,14 +302,52 @@ profile:
             # 图标
             icon: "fa6-brands:github"
             # 链接
-            url: "https://github.com/Spr-Aachen/Twilight"
+            url: "https://s.081531.xyz/github"
+
+# 关于页配置
+about:
+    author:
+        name: "克喵Moretti"
+        avatar: "/assets/images/avatar.png"
+        bio: "在代码、文字与日常之间，慢慢收集属于自己的微光。"
+    authorTags:
+        left:
+            - "💻 代码探索者"
+            - "📷 生活记录者"
+            - "🎮 游戏玩家"
+            - "☕ 咖啡爱好者"
+        right:
+            - "🌙 夜行性创作者"
+            - "✈️ 旅行收集家"
+            - "🎵 音乐漫游者"
+            - "🐱 猫咪饲养员"
+    manifesto:
+        eyebrow: "追求"
+        title: "源于热爱而去感受"
+        highlight: "体验"
+    skills:
+        - name: "Astro"
+          icon: "logos:astro-icon"
+        - name: "Svelte"
+          icon: "logos:svelte-icon"
+        - name: "TypeScript"
+          icon: "logos:typescript-icon"
+        - name: "Tailwind CSS"
+          icon: "logos:tailwindcss-icon"
+        - name: "Node.js"
+          icon: "logos:nodejs-icon"
+        - name: "Git"
+          icon: "logos:git-icon"
+    journey:
+        eyebrow: "心路历程"
+        title: "为何而建站"
 
 # 公告配置
 announcement:
     # 公告标题
     title: "Announcement"
     # 公告内容
-    content: "Welcome to my blog!"
+    content: "欢迎来到我的博客!"
     # 允许用户关闭公告
     closable: true
     # 链接配置
@@ -310,6 +360,20 @@ announcement:
         url: "/about/"
         # 是否外部链接
         external: false
+
+# 首页模块配置
+home:
+    featured:
+        enable: true
+        count: 12
+        visibleDesktop: 4
+        visibleMobile: 2
+        title: "喜欢哪一期周刊呢~"
+    spotlight:
+        enable: true
+        pinnedCount: 3
+        interval: 4200
+        randomEnable: true
 
 # 文章配置
 post:
@@ -417,7 +481,7 @@ musicPlayer:
     # meting 模式专属配置
     meting:
         # Meting API 地址
-        meting_api: "https://meting.spr-aachen.com/api"
+        meting_api: "https://v.iarc.top/"
         # 音乐平台
         server: "netease"
         # 类型 ("playlist" 歌单 | "song" 单曲)
@@ -483,3 +547,26 @@ pio:
         close: "See you next time~"
         # 关于链接
         link: "https://nav.kungal.org"
+
+friends:
+    source: "remote"
+    remoteUrl: "https://jsd.268682.xyz/gh/kmoretti/butterfly-link-check@main/link.yml"
+    graveyardUrl: "https://jsd.268682.xyz/gh/kmoretti/butterfly-link-check@main/link-false.yml"
+    graveyardTitle: "友链墓碑"
+    graveyardDescription: "曾经来过这里的朋友们"
+    feedUrl: "https://fc.081531.xyz/all.json"
+
+# 日记/说说配置
+diary:
+    # 数据源 ("local" 本地 JSON | "ech0" 远程 Ech0 | "tg" 远程 TG)
+    source: "tg"
+    # Ech0 远程接口地址
+    ech0Url: "https://m.081531.xyz/api/echo/page"
+    # TG 远程接口根地址
+    tgUrl: "https://tgtalk.kemiaosw.top"
+    # Ech0 说说卡片中显示的名称（不使用接口返回的 username）
+    displayName: "克喵Moretti"
+    # 每页条数
+    pageSize: 10
+    # star-vote 服务地址
+    voteUrl: "https://vote.081531.xyz"

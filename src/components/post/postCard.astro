@@ -31,7 +31,6 @@ const {
     cover,
     tags,
     category,
-    pinned,
 } = entry.data;
 
 const hasCover = cover !== undefined && cover !== null && cover !== "";
@@ -64,7 +63,6 @@ const defaultCoverGradient = "linear-gradient(135deg, color-mix(in oklch, oklch(
                 titleSize
             ]}
         >
-            {pinned && <Icon name="mdi:pin" class="inline text-(--primary) text-2xl mr-2 -translate-y-0.5"></Icon>}
             {title}
         </a>
         <!-- metadata -->

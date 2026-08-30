@@ -58,6 +58,7 @@ export function GithubCardComponent(properties, children) {
         `script#${cardUuid}-script`,
         { type: "text/javascript", defer: true },
         `
+        (() => {
         const init = () => {
             fetch('https://api.github.com/repos/${repo}', { referrerPolicy: "no-referrer" }).then(response => response.json()).then(data => {
                 document.getElementById('${cardUuid}-description').innerText = data.description?.replace(/:[a-zA-Z0-9_]+:/g, '') || "Description not set";
@@ -87,6 +88,7 @@ export function GithubCardComponent(properties, children) {
         }, { rootMargin: '100px' });
 
         observer.observe(document.getElementById('${cardUuid}-card'));
+        })();
         `,
     );
 

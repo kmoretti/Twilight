@@ -1,7 +1,9 @@
 {
-    "title": "Twilight Docs",
-    "imgurl": "https://docs.twilight.spr-aachen.com/twilight.png",
-    "desc": "Twilight User Manual",
-    "siteurl": "https://docs.twilight.spr-aachen.com",
+    "name": "Twilight Docs",
+    "link": "https://docs.twilight.spr-aachen.com",
+    "avatar": "https://docs.twilight.spr-aachen.com/twilight.png",
+    "descr": "Twilight User Manual",
+    "className": "本站相关",
+    "classDesc": "本站使用的技术与文档",
     "tags": ["Docs"]
 }

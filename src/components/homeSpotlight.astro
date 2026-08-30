@@ -1,0 +1,148 @@
+---
+import type { CollectionEntry } from "astro:content";
+import Icon from "@components/common/icon.astro";
+import { getPostUrl } from "@utils/url";
+import { homeConfig, profileConfig } from "@/config";
+import { skillsData } from "@utils/skills";
+import { getFileDirFromPath } from "@utils/url";
+import ImageWrapper from "@components/common/imageWrapper.astro";
+
+type Props = { posts: CollectionEntry<"posts">[] };
+const { posts } = Astro.props;
+const pinned = posts.filter((post) => post.data.pinned).slice(0, homeConfig.spotlight.pinnedCount);
+const randomPosts = posts.filter((post) => !post.data.draft);
+const spotlightSkills = skillsData.map((skill) => ({ name: skill.name, icon: skill.icon, color: skill.color || "var(--primary)" }));
+if (!homeConfig.spotlight.enable || (pinned.length === 0 && !homeConfig.spotlight.randomEnable)) return null;
+---
+<section class="home-spotlight" aria-label="快捷入口" data-interval={homeConfig.spotlight.interval}>
+    {homeConfig.spotlight.randomEnable && (
+        <button class="home-random card-base" type="button" data-random aria-label="随便逛逛">
+            <span class="home-random-face">
+                <span class="home-random-face-title">{profileConfig.name}</span>
+                <span class="home-random-face-desc">看点什么好呢</span>
+            </span>
+            <span class="home-random-tags" aria-hidden="true">
+                <span class="home-random-tags-group">
+                    <span class="home-random-tags-scroll">
+                        {[...spotlightSkills, ...spotlightSkills].map((skill) => (
+                            <span class="home-random-tags-pair">
+                                <span class="home-random-tags-icon" style={`--skill-color:${skill.color}`}>
+                                    <Icon icon={skill.icon} fallback={skill.name.slice(0, 1)} loading="eager" />
+                                </span>
+                                <span class="home-random-tags-icon" style={`--skill-color:${skill.color}`}>
+                                    <Icon icon={skill.icon} fallback={skill.name.slice(0, 1)} loading="eager" />
+                                </span>
+                            </span>
+                        ))}
+                    </span>
+                </span>
+            </span>
+            <span class="home-random-hover" aria-hidden="true">
+                <span class="home-random-plane"><Icon icon="mdi:send" size="2xl" /></span>
+                <span class="home-random-banner-text">随便逛逛</span>
+            </span>
+        </button>
+    )}
+
+    {pinned.length > 0 && (
+        <div class="home-pinned card-base" data-pinned>
+            {pinned.map((post, index) => (
+                <a class:list={{ front: index === 0, mid: index === 1, back: index === 2, hidden: index > 2 }} class="home-pinned-card" href={getPostUrl(post)} aria-label={`阅读全文：${post.data.title}`}>
+                    <span class="home-pin"><Icon icon="mdi:pin" /></span>
+                    <div class="home-pinned-cover">
+                        {post.data.cover ? <ImageWrapper src={post.data.cover} basePath={getFileDirFromPath(post.filePath || "")} alt={post.data.title} class="w-full h-full" /> : null}
+                    </div>
+                    <div class="home-pinned-body">
+                        <h2>{post.data.title}</h2>
+                        <p>{post.data.description}</p>
+                        <div class="home-pinned-meta"><small>{post.data.category}</small>{post.data.published && <time datetime={post.data.published.toISOString()}>{post.data.published.toLocaleDateString()}</time>}</div>
+                    </div>
+                </a>
+            ))}
+        </div>
+    )}
+</section>
+
+<script define:vars={{ randomPosts: randomPosts.map((post) => ({ url: getPostUrl(post), title: post.data.title })) }}>
+    const timers = new WeakMap();
+    const init = () => {
+        Array.from(document.querySelectorAll("[data-pinned]")).forEach((box) => {
+            const cards = Array.from(box.querySelectorAll(".home-pinned-card"));
+            if (cards.length < 2 || timers.has(box)) return;
+            let index = 0;
+            const interval = Number(box.closest("[data-interval]")?.getAttribute("data-interval") || 4200);
+            timers.set(box, window.setInterval(() => {
+                cards.forEach((card, position) => {
+                    card.classList.remove("front", "mid", "back", "hidden");
+                    const offset = (position - index - 1 + cards.length) % cards.length;
+                    card.classList.add(offset === 0 ? "front" : offset === 1 ? "mid" : offset === 2 ? "back" : "hidden");
+                });
+                index = (index + 1) % cards.length;
+            }, interval));
+        });
+        Array.from(document.querySelectorAll("[data-random]")).forEach((button) => {
+            button.onclick = () => {
+                const post = randomPosts[Math.floor(Math.random() * randomPosts.length)];
+                if (post) window.location.href = post.url;
+            };
+        });
+    };
+    init();
+    document.addEventListener("swup:contentReplaced", init);
+</script>
+
+<style>
+    .home-spotlight { display: grid; grid-template-columns: minmax(0, 3.5fr) minmax(0, 6.5fr); gap: 1rem; align-items: stretch; margin-bottom: 1rem; }
+    .home-random { position: relative; display: block; min-width: 0; height: 148px; padding: 0; overflow: hidden; border: 1px solid color-mix(in oklch, var(--primary) 18%, var(--line-divider)); border-radius: var(--radius-large); background: var(--card-bg); color: inherit; text-align: left; cursor: pointer; transition: box-shadow .42s cubic-bezier(.4,0,.2,1), border-color .42s cubic-bezier(.4,0,.2,1); }
+    .home-random:hover, .home-random:focus-visible { border-color: color-mix(in oklch, var(--primary) 40%, var(--line-divider)); }
+
+    .home-random-face { position: relative; display: block; box-sizing: border-box; width: 100%; height: 100%; overflow: hidden; background: var(--card-bg); }
+    .home-random-face-title { position: absolute; top: 1rem; left: 1rem; z-index: 1; max-width: calc(100% - 2rem); font-size: 1.05rem; font-weight: 700; line-height: 1.2; color: var(--deep-text); pointer-events: none; transition: opacity .24s cubic-bezier(.22,1,.36,1) .3s, transform .28s cubic-bezier(.22,1,.36,1) .28s; }
+    .home-random-face-desc { position: absolute; top: calc(1rem + 1.35em); left: 1rem; z-index: 1; max-width: calc(100% - 2rem); font-size: .75rem; line-height: 1.35; color: var(--content-meta); pointer-events: none; transition: opacity .24s cubic-bezier(.22,1,.36,1) .34s, transform .28s cubic-bezier(.22,1,.36,1) .3s; }
+
+    .home-random-tags { position: absolute; inset: 0; overflow: hidden; pointer-events: none; opacity: 1; transition: opacity .24s cubic-bezier(.22,1,.36,1) .28s; }
+    .home-random-tags-group { position: absolute; top: 50%; left: 50%; width: 160%; height: 160%; transform: translate(calc(-50% + 1.35rem), calc(-50% + 1.65rem)) rotate(-30deg); transform-origin: center center; overflow: hidden; }
+    .home-random-tags-scroll { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; width: max-content; min-width: 100%; margin-top: 3.35rem; padding-left: .75rem; padding-right: 1rem; animation: home-spotlight-icon-rowup 50s linear infinite; will-change: transform; }
+    .home-random-tags-pair { display: flex; flex: none; flex-direction: column; flex-shrink: 0; width: 3.25rem; margin-left: 1.15rem; }
+    .home-random-tags-icon { display: flex; flex: none; flex-shrink: 0; align-items: center; justify-content: center; width: 3.25rem; height: 3.25rem; border-radius: .85rem; color: #fff; background: color-mix(in oklch, var(--skill-color) 78%, var(--card-bg)); box-shadow: 0 8px 18px color-mix(in srgb, #000 18%, transparent); }
+    .home-random-tags-icon :global(.inline-icon), .home-random-tags-icon :global(iconify-icon) { font-size: 1.5rem; line-height: 1; color: #fff; filter: drop-shadow(0 1px 1px color-mix(in srgb, #000 42%, transparent)); }
+    .home-random-tags-icon :global(.inline-icon svg) { color: #fff; fill: currentColor; }
+    .home-random-tags-pair .home-random-tags-icon:nth-child(even) { margin-top: .45rem; transform: translateX(-1.35rem); }
+    @keyframes home-spotlight-icon-rowup { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    .home-random-hover { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: .35rem; padding-left: .75rem; background: linear-gradient(145deg, color-mix(in oklch, var(--primary) 72%, #fff), color-mix(in oklch, var(--primary) 80%, #fff) 58%, color-mix(in oklch, var(--primary) 76%, #fff)); color: #fff; opacity: 0; visibility: hidden; transition: opacity .36s cubic-bezier(.4,0,.2,1), visibility 0s linear .36s, padding-left .36s cubic-bezier(.4,0,.2,1); font-size: clamp(1.85rem, 4.2vw, 2.45rem); font-weight: 700; line-height: 1.1; pointer-events: none; }
+    .home-random-plane { display: block; margin-left: 8px; font-size: clamp(2.85rem, 5.8vw, 3.65rem); line-height: 1; color: #fff; transform: translateX(-14px); transition: transform .28s cubic-bezier(.4,0,.2,1); }
+    .home-random-plane :global(.inline-icon) { font-size: 1em; }
+    .home-random-banner-text { display: flex; align-items: center; gap: 4px; margin-left: 8px; color: #fff; transform: translateX(-14px); transition: transform .28s cubic-bezier(.4,0,.2,1); }
+
+    .home-random:hover .home-random-hover, .home-random:focus-visible .home-random-hover { opacity: 1; visibility: visible; padding-left: 1.5rem; transition: opacity .28s cubic-bezier(.22,1,.36,1), visibility 0s linear 0s, padding-left .32s cubic-bezier(.22,1,.36,1); }
+    .home-random:hover .home-random-face-title, .home-random:hover .home-random-face-desc, .home-random:focus-visible .home-random-face-title, .home-random:focus-visible .home-random-face-desc { opacity: 0; transform: translateX(-10px); transition: opacity .16s ease, transform .2s ease; }
+    .home-random:hover .home-random-tags, .home-random:focus-visible .home-random-tags { opacity: 0; transition: opacity .16s ease; }
+    .home-random:hover .home-random-plane, .home-random:focus-visible .home-random-plane { transform: translateX(0); transition: transform .32s cubic-bezier(.22,1,.36,1) .05s; }
+    .home-random:hover .home-random-banner-text, .home-random:focus-visible .home-random-banner-text { transform: translateX(0); transition: transform .32s cubic-bezier(.22,1,.36,1) .1s; }
+
+    .home-pinned { position: relative; min-height: 148px; height: 148px; overflow: hidden; perspective: 900px; }
+    .home-pinned-card { position: absolute; inset: 0; display: grid; grid-template-columns: 42% minmax(0, 1fr); overflow: hidden; border: 1px solid color-mix(in oklch, var(--primary) 18%, var(--line-divider)); border-radius: var(--radius-large); background: var(--card-bg); box-shadow: 0 10px 22px color-mix(in srgb, #000 10%, transparent); text-decoration: none; transform-origin: center bottom; transition: transform .45s cubic-bezier(.22,1,.36,1), opacity .35s ease, box-shadow .35s ease; }
+    .home-pinned-card.front { z-index: 3; opacity: 1; transform: translate3d(0,0,0) rotate(0) scale(1); pointer-events: auto; box-shadow: 0 14px 28px color-mix(in srgb, #000 14%, transparent); }
+    .home-pinned-card.mid { z-index: 2; opacity: .94; transform: translate3d(5px,4px,-12px) rotate(1.4deg) scale(.985); pointer-events: none; }
+    .home-pinned-card.back { z-index: 1; opacity: .84; transform: translate3d(-5px,7px,-24px) rotate(-1.8deg) scale(.97); pointer-events: none; }
+    .home-pinned-card.hidden { z-index: 0; opacity: 0; transform: translate3d(0,10px,-36px) scale(.95); pointer-events: none; }
+    .home-pinned-cover { min-width: 0; height: 100%; background: linear-gradient(135deg, color-mix(in oklch, var(--primary), transparent 72%), var(--card-bg)); background-position: center; background-size: cover; }
+    .home-pinned-body { display: flex; min-width: 0; height: 100%; flex-direction: column; padding: 1rem .9rem .75rem; }
+    .home-pinned-card h2 { display: -webkit-box; overflow: hidden; margin: 0; color: var(--deep-text); font-size: 1.05rem; line-height: 1.3; -webkit-box-orient: vertical; -webkit-line-clamp: 1; }
+    .home-pinned-card p { overflow: hidden; margin: auto 0; color: var(--content-meta); font-size: .82rem; line-height: 1.4; }
+    .home-pinned-meta { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: var(--content-meta); font-size: .68rem; }
+    .home-pinned-card small { overflow: hidden; color: var(--primary); text-overflow: ellipsis; white-space: nowrap; }
+    .home-pinned-meta time { flex-shrink: 0; }
+    .home-pin { position: absolute; top: .5rem; right: .65rem; z-index: 4; color: var(--primary); transform: rotate(24deg); pointer-events: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .home-random, .home-random *, .home-pinned-card { transition: none !important; }
+        .home-random-tags-scroll { animation: none !important; }
+    }
+
+    @media (max-width: 768px) {
+        .home-spotlight { grid-template-columns: 1fr; }
+        .home-random, .home-pinned { height: 148px; }
+    }
+</style>

@@ -13,6 +13,10 @@ import type {
     ParticleConfig,
     MusicPlayerConfig,
     PioConfig,
+    FriendsConfig,
+    DiaryConfig,
+    HomeConfig,
+    AboutConfig,
 } from "./types/config";
 import { LinkPreset } from "./types/config";
 import rawConfig from "../twilight.config.yaml?raw";
@@ -32,6 +36,10 @@ type ConfigFile = {
     particle: ParticleConfig;
     musicPlayer: MusicPlayerConfig;
     pio: PioConfig;
+    friends: FriendsConfig;
+    diary: DiaryConfig;
+    home: HomeConfig;
+    about: AboutConfig;
 };
 
 const config = yaml.load(rawConfig) as ConfigFile;
@@ -116,6 +124,8 @@ export const sidebarConfig: SidebarConfig = config.sidebar;
 // 资料配置
 export const profileConfig: ProfileConfig = config.profile;
 
+export const aboutConfig: AboutConfig = config.about;
+
 // 公告配置
 export const announcementConfig: AnnouncementConfig = config.announcement;
 
@@ -133,3 +143,25 @@ export const musicPlayerConfig: MusicPlayerConfig = config.musicPlayer;
 
 // 看板娘配置
 export const pioConfig: PioConfig = config.pio;
+
+export const friendsConfig: FriendsConfig = {
+    source: config.friends.source,
+    remoteUrl: config.friends.remoteUrl,
+    graveyardUrl: config.friends.graveyardUrl,
+    graveyardTitle: config.friends.graveyardTitle,
+    graveyardDescription: config.friends.graveyardDescription,
+    feedUrl: config.friends.feedUrl,
+};
+
+// 日记配置
+export const homeConfig: HomeConfig = config.home;
+
+// 日记配置
+export const diaryConfig: DiaryConfig = {
+    source: config.diary.source,
+    ech0Url: config.diary.ech0Url,
+    tgUrl: config.diary.tgUrl ?? "https://tgtalk.kemiaosw.top",
+    displayName: config.diary.displayName,
+    pageSize: config.diary.pageSize,
+    voteUrl: config.diary.voteUrl,
+};

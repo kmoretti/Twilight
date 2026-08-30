@@ -1,3 +1,4 @@
+import { diaryConfig } from "@/config";
 import { getSortedPosts } from "./post";
 import { sortedAlbums } from "./albums";
 import { sortedMoments } from "./diary";
@@ -55,11 +56,15 @@ export async function getDirectoryTree(): Promise<DirectoryNode[]> {
         addNode(basePathParts, album.title || album.id, `/albums/${album.id}/`);
     }
 
-    for (const moment of sortedMoments) {
-        const basePathParts = moment.basePath?.split('/') || [];
-        if (basePathParts[0] === 'content') basePathParts.shift();
-        if (basePathParts[0] === 'diary') basePathParts[0] = rootMap.diary;
-        addNode(basePathParts, moment.title || moment.id, `/diary/`);
+    if (diaryConfig.source === "local") {
+        for (const moment of sortedMoments) {
+            const basePathParts = moment.basePath?.split('/') || [];
+            if (basePathParts[0] === 'content') basePathParts.shift();
+            if (basePathParts[0] === 'diary') basePathParts[0] = rootMap.diary;
+            addNode(basePathParts, moment.title || moment.id, `/diary/`);
+        }
+    } else if (diaryConfig.source === "ech0" || diaryConfig.source === "tg") {
+        addNode([], rootMap.diary, "/diary/");
     }
 
     for (const project of projectsData) {

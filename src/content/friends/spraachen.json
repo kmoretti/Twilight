@@ -1,7 +1,9 @@
 {
-    "title": "Spr_Aachen's Blog",
-    "imgurl": "https://blog.spr-aachen.com/assets/images/avatar.png",
-    "desc": "Spr_Aachen's Personal Blog",
-    "siteurl": "https://blog.spr-aachen.com",
+    "name": "Spr_Aachen's Blog",
+    "link": "https://blog.spr-aachen.com",
+    "avatar": "https://blog.spr-aachen.com/assets/images/avatar.png",
+    "descr": "Spr_Aachen's Personal Blog",
+    "className": "本站相关",
+    "classDesc": "本站使用的技术与文档",
     "tags": ["Blog"]
 }

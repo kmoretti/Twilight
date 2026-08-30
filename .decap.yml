@@ -78,6 +78,10 @@ collections:
                 { name: "category", label: "Category", widget: "string", required: false }
             - # 草稿
                 { name: "draft", label: "Draft", widget: "boolean", default: false }
+            - # 置顶
+                { name: "pinned", label: "Pinned", widget: "boolean", default: false }
+            - # 推荐
+                { name: "featured", label: "Featured", widget: "boolean", default: false }
             - # 正文
                 { name: "body", label: "Body", widget: "markdown" }
 

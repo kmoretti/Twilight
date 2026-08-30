@@ -27,6 +27,7 @@ interface Props {
     setOGTypeArticle?: boolean;
     postSlug?: string;
     headings?: MarkdownHeading[];
+    hideRightSidebar?: boolean;
 }
 
 const {
@@ -37,6 +38,7 @@ const {
     setOGTypeArticle,
     postSlug,
     headings = [],
+    hideRightSidebar = false,
 } = Astro.props;
 const hasBannerCredit = siteConfig.wallpaper.mode === "banner" && siteConfig.wallpaper.banner?.credit?.enable;
 const hasBannerLink = !!siteConfig.wallpaper.banner?.credit?.url;
@@ -55,17 +57,23 @@ const transparentClass = shouldEnableTransparency ? "wallpaper-transparent" : ""
  */
 
 // 检查侧边栏是否启用，动态调整网格布局
+const gridLayout = widgetManager.getGridLayout(headings, Astro.url.pathname);
 const {
     hasLeftSidebar,
-    hasRightSidebar,
+    hasRightSidebar: configuredHasRightSidebar,
     hasAnyComponents,
-    gridCols,
     leftSidebarClass,
-    rightSidebarClass,
-    mainContentClass,
     middleSidebarClass,
     mobileFooterClass,
-} = widgetManager.getGridLayout(headings, Astro.url.pathname);
+} = gridLayout;
+const hasRightSidebar = hideRightSidebar ? false : configuredHasRightSidebar;
+const gridCols = hideRightSidebar
+    ? `grid-cols-1 ${hasAnyComponents ? "md:grid-cols-[17.5rem_1fr]" : "md:grid-cols-1"} ${hasLeftSidebar ? "lg:grid-cols-[17.5rem_1fr]" : "lg:grid-cols-1"}`
+    : gridLayout.gridCols;
+const rightSidebarClass = hideRightSidebar ? "hidden" : gridLayout.rightSidebarClass;
+const mainContentClass = hideRightSidebar
+    ? `overflow-hidden w-full col-span-1 row-start-1 row-end-2 ${hasAnyComponents ? "md:col-start-2 md:col-end-3 md:row-start-1 md:row-end-2" : "md:col-span-1"} ${hasLeftSidebar ? "lg:col-start-2 lg:col-end-3 lg:row-start-1 lg:row-end-2" : "lg:col-span-1"}`
+    : gridLayout.mainContentClass;
 ---
 
 <BaseLayout
@@ -122,7 +130,7 @@ const {
         >
             <div
                 id="main-grid"
-                class={`w-full left-0 right-0 grid ${gridCols} grid-rows-[auto] mx-auto gap-4 px-0 md:px-4 ${!hasAnyComponents ? "mobile-no-sidebar" : ""} ${(hasLeftSidebar || hasRightSidebar) ? "mobile-both-sidebar" : ""}`}
+                class={`w-full left-0 right-0 grid ${gridCols} grid-rows-[auto] mx-auto gap-4 px-0 md:px-4 ${!hasAnyComponents ? "mobile-no-sidebar" : ""} ${(hasLeftSidebar || configuredHasRightSidebar) ? "mobile-both-sidebar" : ""}`}
             >
                 <!-- Banner image credit -->
                 {

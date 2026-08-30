@@ -1,0 +1,24 @@
+---
+import GridLayout from "@layouts/grid.astro";
+import BackwardButton from "@components/backwardButton.astro";
+import Comment from "@components/comment.astro";
+import FriendsFeed from "@components/friendsFeed.svelte";
+import { friendsConfig } from "@/config";
+
+const pageTitle = "朋友圈";
+const pageDescription = "看看友链小伙伴们最近分享的文章。";
+---
+
+<GridLayout title={pageTitle} description={pageDescription}>
+    <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+        <div class="card-base z-10 px-9 py-6 relative w-full">
+            <BackwardButton currentPath={Astro.url.pathname} />
+            <header class="mb-8">
+                <h1 class="text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-3">{pageTitle}</h1>
+                <p class="text-neutral-600 dark:text-neutral-400">{pageDescription}</p>
+            </header>
+            <FriendsFeed endpoint={friendsConfig.feedUrl} client:load />
+        </div>
+    </div>
+    <Comment path="/fcircle/" />
+</GridLayout>

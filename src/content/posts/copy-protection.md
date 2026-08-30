@@ -3,6 +3,7 @@ title: Copy Protection Example
 published: 2022-11-01
 description: This post demonstrates the copyProtection frontmatter option with granular controls.
 pinned: false
+featured: true
 tags: [Copy Protection]
 category: Examples
 draft: false

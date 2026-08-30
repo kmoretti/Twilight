@@ -57,6 +57,16 @@
                     "type": "boolean"
                 },
                 {
+                    "title": "pinned",
+                    "name": "pinned",
+                    "type": "boolean"
+                },
+                {
+                    "title": "featured",
+                    "name": "featured",
+                    "type": "boolean"
+                },
+                {
                     "title": "language",
                     "name": "language",
                     "type": "string"

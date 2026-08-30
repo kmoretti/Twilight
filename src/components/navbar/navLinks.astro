@@ -1,7 +1,8 @@
 ---
 import { Icon } from "astro-icon/components";
 
-import { type NavbarLink } from "@/types/config";
+import { LinkPreset, type NavbarLink } from "@/types/config";
+import { LinkPresets } from "@constants/link-presets";
 import { url } from "@utils/url";
 
 
@@ -13,7 +14,7 @@ interface Props {
 const { link, class: className } = Astro.props;
 ---
 
-<div class:list={["nav-link-container", className]}>
+<div class:list={["nav-link-container", className, link.children?.length ? "has-children" : ""]}>
     <a
         aria-label={link.name}
         href={link.external ? link.url : url(link.url)}
@@ -24,7 +25,30 @@ const { link, class: className } = Astro.props;
         <div class="flex items-center">
             {link.icon && <Icon name={link.icon} class="text-[1.1rem] nav-link-icon" />}
             <span class="nav-link-text ml-2 hidden lg:inline">{link.name}</span>
-            {link.external && <Icon name="fa6-solid:arrow-up-right-from-square" class="text-[0.875rem] transition -translate-y-px ml-1 text-black/20 dark:text-white/20" />}
+            {link.children?.length && <Icon name="material-symbols:expand-more" class="nav-link-expand-icon text-[0.9rem] ml-1" />}
+            {link.external && <Icon name="fa6-solid:arrow-up-right-from-square" class="text-[0.875rem] transition -translate-y-px ml-1 text-(--deep-text)/40" />}
         </div>
     </a>
+    {link.children?.length && <div class="nav-submenu">
+        {link.children.map((child) => {
+            const childLink = typeof child === "number" ? LinkPresets[child as LinkPreset] : child;
+            return <a href={childLink.external ? childLink.url : url(childLink.url)} target={childLink.external ? "_blank" : null} class="nav-submenu-item">
+                {childLink.icon && <Icon name={childLink.icon} class="text-[1rem]" />}
+                <span>{childLink.name}</span>
+            </a>;
+        })}
+    </div>}
 </div>
+
+<style>
+    .nav-link-container { position: relative; }
+    .nav-link-expand-icon { transition: transform .2s ease; }
+    .nav-link-container:hover .nav-link-expand-icon,
+    .nav-link-container:focus-within .nav-link-expand-icon { transform: rotate(180deg); }
+    .nav-submenu { position: absolute; top: calc(100% + .35rem); left: 50%; z-index: 60; display: grid; min-width: 10rem; padding: .4rem; border: 1px solid var(--line-divider); border-radius: .7rem; background: var(--card-bg); box-shadow: 0 8px 24px color-mix(in oklch, var(--deep-text), transparent 85%); opacity: 0; visibility: hidden; transform: translate(-50%, -.35rem); transition: opacity .2s, transform .2s, visibility .2s; }
+    .nav-link-container:hover .nav-submenu, .nav-link-container:focus-within .nav-submenu { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+    .nav-submenu-item { display: flex; align-items: center; gap: .5rem; padding: .55rem .7rem; border-radius: .45rem; color: var(--deep-text); font-size: .8rem; white-space: nowrap; }
+    .nav-submenu-item:hover { color: var(--primary); background: var(--btn-plain-bg-hover); }
+    :global(:root.dark) .nav-submenu { background: var(--card-bg); color: var(--deep-text); border-color: var(--line-divider); }
+    :global(:root.dark) .nav-submenu-item { color: var(--deep-text); }
+</style>

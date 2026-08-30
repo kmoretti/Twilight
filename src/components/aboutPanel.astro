@@ -1,0 +1,379 @@
+---
+import { Icon } from "astro-icon/components";
+
+import type { AboutConfig } from "@/types/config";
+import ImageWrapper from "@components/common/imageWrapper.astro";
+import Markdown from "@components/common/markdown.astro";
+import { getAnalyticsConfig } from "@utils/analytics";
+import { i18n } from "@i18n/translation";
+import I18nKey from "@i18n/i18nKey";
+
+interface Props {
+    aboutConfig: AboutConfig;
+    Content: any;
+}
+
+const { aboutConfig, Content } = Astro.props;
+const { enabled: analyticsEnabled, baseUrl, apiKey, websiteId } = getAnalyticsConfig();
+---
+
+<div class="about-panel">
+    <section class="about-author-tags" aria-label="作者标签">
+        <div class="about-tag-column about-tag-column-left">
+            {aboutConfig.authorTags.left.map((tag) => <span class="about-author-tag">{tag}</span>)}
+        </div>
+        <div class="about-avatar-column">
+            <ImageWrapper
+                src={aboutConfig.author.avatar}
+                alt="作者头像"
+                class="about-author-avatar"
+                loading="eager"
+            />
+            {analyticsEnabled && (
+                <div
+                    class="about-site-stats-container"
+                    data-analytics-base-url={baseUrl}
+                    data-analytics-api-key={apiKey}
+                    data-analytics-website-id={websiteId}
+                    data-i18n-views={i18n(I18nKey.pageViews)}
+                    data-i18n-visitors={i18n(I18nKey.visitors)}
+                    data-i18n-error={i18n(I18nKey.statsError)}
+                >
+                    <Icon name="fa6-solid:eye" />
+                    <span class="about-site-stats-display">{i18n(I18nKey.statsLoading)}</span>
+                </div>
+            )}
+        </div>
+        <div class="about-tag-column about-tag-column-right">
+            {aboutConfig.authorTags.right.map((tag) => <span class="about-author-tag">{tag}</span>)}
+        </div>
+    </section>
+
+    <section class="about-manifesto card-base">
+        <p class="about-manifesto-eyebrow">{aboutConfig.manifesto.eyebrow}</p>
+        <h1>{aboutConfig.manifesto.title}</h1>
+        <p class="about-manifesto-highlight">{aboutConfig.manifesto.highlight}</p>
+    </section>
+
+    <section class="about-section about-skills-card card-base">
+        <div class="about-section-heading">
+            <Icon name="material-symbols:terminal-rounded" size={24} />
+            <h2>技能</h2>
+        </div>
+        <div class="about-skills">
+            {aboutConfig.skills.map((skill) => (
+                <span class="about-skill">
+                    <Icon name={skill.icon} size={24} />
+                    <span>{skill.name}</span>
+                </span>
+            ))}
+        </div>
+    </section>
+
+    <section class="about-section about-journey-card card-base">
+        <div class="about-section-heading">
+            <Icon name="material-symbols:route-rounded" size={24} />
+            <div>
+                <p class="about-journey-eyebrow">{aboutConfig.journey.eyebrow}</p>
+                <h2>{aboutConfig.journey.title}</h2>
+            </div>
+        </div>
+        <Markdown class="about-journey">
+            <Content />
+        </Markdown>
+    </section>
+</div>
+
+{analyticsEnabled && (
+    <script>
+        import { initAnalyticsStats } from "@utils/analytics";
+        import "@/plugins/umami-share";
+
+        initAnalyticsStats(".about-site-stats-container", ".about-site-stats-display", "umami", false);
+        document.addEventListener('astro:page-load', () => {
+            initAnalyticsStats(".about-site-stats-container", ".about-site-stats-display", "umami", false);
+        });
+    </script>
+)}
+
+<style>
+    .about-panel {
+        display: grid;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .about-author-tags,
+    .about-manifesto,
+    .about-section {
+        border: 1px solid var(--line-divider);
+    }
+
+    .about-author-tags {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 1.25rem;
+        min-height: 13rem;
+        overflow: hidden;
+        padding: 1rem;
+    }
+
+    .about-tag-column {
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        gap: .45rem;
+        max-width: 13rem;
+    }
+
+    .about-tag-column-left {
+        align-items: flex-end;
+    }
+
+    .about-tag-column-right {
+        align-items: flex-start;
+    }
+
+    .about-avatar-column {
+        display: flex;
+        flex: 0 0 11.25rem;
+        flex-direction: column;
+        align-items: center;
+        gap: .5rem;
+        min-width: 0;
+    }
+
+    .about-site-stats-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .35rem;
+        max-width: 100%;
+        color: color-mix(in oklch, var(--deep-text), transparent 40%);
+        font-size: .75rem;
+        line-height: 1.2;
+        text-align: center;
+    }
+
+    .about-site-stats-container :global(svg) {
+        flex: 0 0 auto;
+        color: color-mix(in oklch, var(--deep-text), transparent 40%);
+    }
+
+    .about-site-stats-display {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .about-author-tag {
+        padding: .3rem .75rem;
+        border: 1px solid var(--line-divider);
+        border-radius: 9999px;
+        background: var(--card-bg);
+        box-shadow: 0 .25rem .75rem color-mix(in oklch, var(--deep-text), transparent 88%);
+        color: var(--deep-text);
+        font-size: .875rem;
+        font-weight: 700;
+        line-height: 1.2;
+        white-space: nowrap;
+        animation: about-tag-float 6s ease-in-out infinite;
+    }
+
+    .about-tag-column-left .about-author-tag:first-child,
+    .about-tag-column-left .about-author-tag:last-child {
+        margin-right: -1rem;
+    }
+
+    .about-author-tag:nth-child(2) {
+        animation-delay: .6s;
+    }
+
+    .about-author-tag:nth-child(3) {
+        animation-delay: 1.2s;
+    }
+
+    .about-author-tag:nth-child(4) {
+        animation-delay: 1.8s;
+    }
+
+    .about-avatar-column :global(.about-author-avatar) {
+        width: 11.25rem;
+        height: 11.25rem;
+        border: .35rem solid var(--card-bg);
+        border-radius: 50%;
+        box-shadow: 0 .5rem 1.5rem color-mix(in oklch, var(--deep-text), transparent 82%);
+    }
+
+    .about-manifesto,
+    .about-section {
+        padding: 1.5rem;
+    }
+
+    .about-manifesto {
+        overflow-wrap: anywhere;
+    }
+
+    .about-manifesto h1,
+    .about-section-heading h2 {
+        margin: 0;
+        color: var(--deep-text);
+        font-weight: 700;
+    }
+
+    .about-manifesto h1 {
+        font-size: clamp(2rem, 5vw, 3.5rem);
+        line-height: 1.2;
+    }
+
+    .about-manifesto-eyebrow,
+    .about-journey-eyebrow {
+        margin: 0 0 .35rem;
+        color: var(--primary);
+        font-size: .75rem;
+        font-weight: 700;
+        letter-spacing: .16em;
+    }
+
+    .about-manifesto-highlight {
+        width: fit-content;
+        max-width: 100%;
+        margin: .5rem 0 0;
+        overflow-wrap: anywhere;
+        background: linear-gradient(90deg, var(--primary), color-mix(in oklch, var(--primary), var(--deep-text) 35%));
+        background-clip: text;
+        color: transparent;
+        font-size: clamp(2.5rem, 7vw, 4.5rem);
+        font-weight: 700;
+        line-height: 1.1;
+    }
+
+    .about-section-heading {
+        display: flex;
+        align-items: center;
+        gap: .65rem;
+        color: var(--primary);
+    }
+
+    .about-section-heading h2 {
+        font-size: 1.2rem;
+    }
+
+    .about-skills {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .6rem;
+        margin-top: 1.25rem;
+    }
+
+    .about-skill {
+        display: inline-flex;
+        align-items: center;
+        gap: .45rem;
+        padding: .5rem .7rem;
+        border: 1px solid var(--line-divider);
+        border-radius: .75rem;
+        background: color-mix(in oklch, var(--primary), var(--card-bg) 94%);
+        color: var(--deep-text);
+        font-size: .9rem;
+        font-weight: 600;
+    }
+
+    .about-skill :global(svg) {
+        color: var(--primary);
+    }
+
+    .about-journey {
+        margin-top: 1rem;
+    }
+
+    @keyframes about-tag-float {
+        0%, 100% {
+            transform: translateY(-.2rem);
+        }
+
+        50% {
+            transform: translateY(-.55rem);
+        }
+    }
+
+    @keyframes about-tag-float-mobile {
+        0%, 100% {
+            transform: translateY(-.05rem);
+        }
+
+        50% {
+            transform: translateY(-.2rem);
+        }
+    }
+
+    @media (max-width: 768px) {
+        .about-author-tags {
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 0;
+            padding: 1.25rem;
+        }
+
+        .about-tag-column {
+            display: flex;
+            flex: 0 1 auto;
+            flex-direction: row;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: .25rem;
+            min-width: 0;
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .about-author-tag {
+            padding: .25rem .45rem;
+            font-size: .68rem;
+            animation: about-tag-float-mobile 5s ease-in-out infinite;
+        }
+
+        .about-tag-column-left {
+            order: 1;
+        }
+
+        .about-avatar-column {
+            order: 2;
+            flex-basis: 8.25rem;
+        }
+
+        .about-avatar-column :global(.about-author-avatar) {
+            width: 8.25rem;
+            height: 8.25rem;
+        }
+
+        .about-tag-column-right {
+            order: 3;
+        }
+
+        .about-tag-column-left .about-author-tag:first-child,
+        .about-tag-column-left .about-author-tag:last-child {
+            margin-right: 0;
+        }
+
+        .about-manifesto,
+        .about-section {
+            padding: 1.25rem;
+        }
+
+        .about-manifesto h1 {
+            font-size: 2rem;
+        }
+
+        .about-manifesto-highlight {
+            font-size: 2.5rem;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .about-author-tag {
+            animation: none;
+        }
+    }
+</style>

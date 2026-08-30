@@ -5,6 +5,7 @@ description: "Master the advanced features and customization options of the Twil
 cover: "./Cover - Advanced Customization.jpg"
 coverInContent: false
 pinned: false
+featured: true
 tags: []
 category:
     - Guides:
