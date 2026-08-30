@@ -1,0 +1,53 @@
+.back-to-top-wrapper {
+  width: 3rem;
+  height: 3rem;
+  position: absolute;
+  right: 0;
+  top: 0;
+  pointer-events: none;
+}
+.back-to-top-btn {
+  color: var(--primary);
+  font-size: 2.25rem;
+  font-weight: bold;
+  border: none;
+  position: fixed;
+  bottom: 6.78rem;
+  opacity: 1;
+  right: 1rem;
+  cursor: pointer;
+  translate: 0 0;
+  pointer-events: auto;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 0 0 1px var(--btn-regular-bg), 0 0 1em var(--btn-regular-bg);
+}
+.back-to-top-btn button {
+  width: 3rem;
+  height: 3rem;
+}
+.back-to-top-btn i {
+  font-size: 1.75rem;
+}
+.back-to-top-btn.hide {
+  translate: 0 2rem;
+  scale: 0.9;
+  opacity: 0;
+  pointer-events: none;
+}
+.back-to-top-btn:active {
+  scale: 0.9;
+}
+@media (max-width: 768px) {
+  .back-to-top-btn {
+    bottom: 5.5rem;
+    right: 0.5rem;
+    font-size: 2rem;
+  }
+  .back-to-top-btn.hide {
+    translate: 0 2rem;
+    scale: 0.9;
+  }
+  .back-to-top-btn:active {
+    scale: 0.9;
+  }
+}

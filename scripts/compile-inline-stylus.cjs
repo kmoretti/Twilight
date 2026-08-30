@@ -26,14 +26,13 @@ const files = walk(srcDir);
 
 const styleBlockRe = /<style[^>]*lang=["']stylus["'][^>]*>([\s\S]*?)<\/style>/ig;
 const npxCmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-const outNull = process.platform === 'win32' ? 'nul' : '/dev/null';
 
 let failed = false;
 
 function compileStylusContent(content, tmpPath) {
   fs.writeFileSync(tmpPath, content, 'utf8');
   try {
-    execSync(`${npxCmd} stylus "${tmpPath}" -o ${outNull}`, { stdio: 'pipe' });
+    execSync(`${npxCmd} stylus "${tmpPath}"`, { stdio: 'pipe' });
     fs.unlinkSync(tmpPath);
     return { ok: true };
   } catch (err) {
