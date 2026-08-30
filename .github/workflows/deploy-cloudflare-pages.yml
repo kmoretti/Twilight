@@ -35,12 +35,20 @@ jobs:
       - run: pnpm check
       - run: pnpm check-stylus
       - run: pnpm build
-      - if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Create Cloudflare Pages project
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           gitHubToken: ${{ github.token }}
-          command: |
-            pages project create twilight --production-branch=main || true
-            pages deploy dist --project-name=twilight --branch=main --commit-dirty=true
+          command: pages project create twilight --production-branch=main
+      - name: Deploy to Cloudflare Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ github.token }}
+          command: pages deploy dist --project-name=twilight --branch=main --commit-dirty=true
