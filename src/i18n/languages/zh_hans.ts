@@ -22,6 +22,10 @@ export const zh_hans: Translation = {
     [Key.postList]: "文章列表",
     [Key.statistics]: "统计",
     [Key.tableOfContents]: "目录",
+    [Key.calendarPreviousMonth]: "上个月",
+    [Key.calendarNextMonth]: "下个月",
+    [Key.calendarReturnToCurrentMonth]: "返回当前月份",
+    [Key.calendarPostsOnDate]: "文章日期",
 
     // 统计
     [Key.pageViews]: "浏览量",

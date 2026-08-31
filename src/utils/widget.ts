@@ -12,6 +12,8 @@ import { sidebarConfig } from "@/config";
 export const WIDGET_COMPONENT_MAP = {
     profile: "@components/sidebar/profile.astro",
     announcement: "@components/sidebar/announcement.astro",
+    clock: "@components/sidebar/clock.astro",
+    calendar: "@components/sidebar/calendar.astro",
     directory: "@components/sidebar/directory.astro",
     categories: "@components/sidebar/categories.astro",
     tags: "@components/sidebar/tags.astro",

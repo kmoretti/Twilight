@@ -18,6 +18,10 @@ enum I18nKey {
     postList = "postList",
     statistics = "statistics",
     tableOfContents = "tableOfContents",
+    calendarPreviousMonth = "calendarPreviousMonth",
+    calendarNextMonth = "calendarNextMonth",
+    calendarReturnToCurrentMonth = "calendarReturnToCurrentMonth",
+    calendarPostsOnDate = "calendarPostsOnDate",
 
     // 统计
     pageViews = "pageViews",

@@ -22,6 +22,10 @@ export const ja: Translation = {
     [Key.postList]: "投稿リスト",
     [Key.statistics]: "統計",
     [Key.tableOfContents]: "目次",
+    [Key.calendarPreviousMonth]: "前の月",
+    [Key.calendarNextMonth]: "次の月",
+    [Key.calendarReturnToCurrentMonth]: "今月に戻る",
+    [Key.calendarPostsOnDate]: "投稿の日付",
 
     // 統計
     [Key.pageViews]: "閲覧数",

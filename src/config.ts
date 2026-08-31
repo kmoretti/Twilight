@@ -17,6 +17,8 @@ import type {
     DiaryConfig,
     HomeConfig,
     AboutConfig,
+    ClockConfig,
+    CalendarConfig,
 } from "./types/config";
 import { LinkPreset } from "./types/config";
 import rawConfig from "../twilight.config.yaml?raw";
@@ -31,6 +33,8 @@ type ConfigFile = {
     sidebar: SidebarConfig;
     profile: ProfileConfig;
     announcement: AnnouncementConfig;
+    clock?: ClockConfig;
+    calendar?: CalendarConfig;
     post: PostConfig;
     footer: FooterConfig;
     particle: ParticleConfig;
@@ -129,6 +133,21 @@ export const aboutConfig: AboutConfig = config.about;
 // 公告配置
 export const announcementConfig: AnnouncementConfig = config.announcement;
 
+export const clockConfig: ClockConfig = config.clock ?? {
+    enable: false,
+    amapKey: "",
+    fallbackLocation: {
+        longitude: 120.752512,
+        latitude: 31.654376,
+        name: "Changshu",
+    },
+};
+
+export const calendarConfig: CalendarConfig = config.calendar ?? {
+    enable: false,
+    startOfWeek: "mon",
+};
+
 // 文章配置
 export const postConfig: PostConfig = resolvedPostConfig;
 
@@ -159,6 +178,7 @@ export const homeConfig: HomeConfig = config.home;
 // 日记配置
 export const diaryConfig: DiaryConfig = {
     source: config.diary.source,
+    cardStyle: config.diary.cardStyle ?? "moments",
     ech0Url: config.diary.ech0Url,
     tgUrl: config.diary.tgUrl ?? "https://tgtalk.kemiaosw.top",
     displayName: config.diary.displayName,

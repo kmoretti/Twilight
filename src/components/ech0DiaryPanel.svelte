@@ -1,6 +1,9 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { onDestroy, onMount, tick } from "svelte";
+    import { refreshFancybox } from "@utils/fancybox";
     import MarkdownIt from "markdown-it";
+    import MomentsCard, { type MomentsCardItem } from "./moments/MomentsCard.svelte";
+    import MomentGallery from "./moments/MomentGallery.svelte";
 
     interface EchoExt {
         type: string;
@@ -17,7 +20,7 @@
         ext: EchoExt | null;
     }
 
-    let { ech0Url = "https://m.081531.xyz/api/echo/page", displayName = "", pageSize = 10, voteUrl = "https://vote.081531.xyz" }: { ech0Url?: string; displayName?: string; pageSize?: number; voteUrl?: string } = $props();
+    let { ech0Url = "https://m.081531.xyz/api/echo/page", displayName = "", pageSize = 10, voteUrl = "https://vote.081531.xyz", cardStyle = "moments", avatar = "" }: { ech0Url?: string; displayName?: string; pageSize?: number; voteUrl?: string; cardStyle?: "moments" | "classic"; avatar?: string } = $props();
 
     let items = $state<EchoItem[]>([]);
     let total = $state(0);
@@ -189,6 +192,12 @@
     }
 
     // 灯箱：Fancybox 通过选择器实时绑定。这里为 markdown 图片补错误占位。
+    async function renderFancybox() {
+        await tick();
+        initMarkdownImages();
+        await refreshFancybox();
+    }
+
     function initMarkdownImages() {
         if (!listEl) return;
         listEl.querySelectorAll("[data-md-render] img").forEach((img) => {
@@ -220,7 +229,7 @@
     $effect(() => {
         items;
         page;
-        if (listEl) initMarkdownImages();
+        if (listEl) void renderFancybox();
     });
 
     function githubSegments(repoUrl: string) {
@@ -234,6 +243,10 @@
     }
 
     onMount(() => { void loadPage(1); });
+
+    onDestroy(() => {
+        void refreshFancybox();
+    });
 </script>
 
 <div class="ech0-panel">
@@ -250,6 +263,36 @@
         {:else}
         <div class="moment-timeline" bind:this={listEl}>
             {#each pageItems as item (item.id)}
+                {#if cardStyle === "moments"}
+                    {@const cardItem: MomentsCardItem = { id: item.id, author: item.username, avatar, datetime: relativeTime(item.created), tags: item.tags }}
+                    {#snippet content()}
+                        {#if item.ext && item.ext.type === "WEBSITE"}
+                            {@const w = item.ext.payload}
+                            <a class="ext-card" href={String(w?.site || "")} target="_blank" rel="noopener noreferrer"><span class="ext-icon">🌐</span><span class="ext-meta"><span class="ext-title">{String(w?.title || "网站")}</span><span class="ext-sub">{websiteDomain(String(w?.site || ""))}</span></span></a>
+                        {/if}
+                        {#if item.ext && item.ext.type === "GITHUBPROJ"}
+                            {@const g = githubSegments(String(item.ext.payload?.repoUrl || ""))}
+                            <a class="ext-card" href={String(item.ext.payload?.repoUrl)} target="_blank" rel="noopener noreferrer"><span class="ext-icon">📦</span><span class="ext-meta"><span class="ext-title">{g.title}</span><span class="ext-sub">{g.owner} / {g.repo}</span></span></a>
+                        {/if}
+                        {#if item.ext && item.ext.type === "LOCATION"}
+                            {@const loc = item.ext.payload}
+                            <div class="ext-card no-link"><span class="ext-icon">📍</span><span class="ext-meta"><span class="ext-title">{String(loc?.placeholder || "位置")}</span><span class="ext-sub">{Number(loc?.latitude ?? 0).toFixed(2)}°, {Number(loc?.longitude ?? 0).toFixed(2)}°</span></span></div>
+                        {/if}
+                        {#if item.ext && item.ext.type === "MUSIC"}<a class="ext-card" href={String(item.ext.payload?.url)} target="_blank" rel="noopener noreferrer"><span class="ext-icon">🎵</span><span class="ext-meta"><span class="ext-title">音乐</span><span class="ext-sub">播放/打开音乐</span></span></a>{/if}
+                        {#if item.ext && item.ext.type === "VIDEO"}<a class="ext-card" href={`https://www.bilibili.com/video/${String(item.ext.payload?.videoId || "")}`} target="_blank" rel="noopener noreferrer"><span class="ext-icon">🎬</span><span class="ext-meta"><span class="ext-title">视频</span><span class="ext-sub">{String(item.ext.payload?.videoId || "")}</span></span></a>{/if}
+                        {#if item.ext && item.ext.type === "TWEET"}
+                            {@const tw = item.ext.payload}
+                            <a class="ext-card" href={String(tw?.url)} target="_blank" rel="noopener noreferrer"><span class="ext-icon">𝕏</span><span class="ext-meta"><span class="ext-title">@{String(tw?.username || "推文")}</span><span class="ext-sub">查看推文</span></span></a>
+                        {/if}
+                        <div class="md-render" data-md-render data-echo-group={`echo-${item.id}`}>{@html renderMarkdown(item.content, "echo-" + item.id)}</div>
+                        {#if item.images.length > 0}<MomentGallery images={item.images.map(src => ({ src, alt: "说说图片" }))} />{/if}
+                    {/snippet}
+                    {#snippet footer()}
+                        <span class="moment-tags">{#each item.tags as tag (tag)}<button type="button" class:active={selectedTag === tag} aria-pressed={selectedTag === tag} onclick={() => { selectedTag = selectedTag === tag ? "" : tag; page = 1; }}>{tag}</button>{/each}</span>
+                        <button type="button" class="moment-vote" class:voted={votes[item.id] !== null && (votes[item.id] ?? 0) > 0} disabled={voting[item.id]} aria-label="点赞" onclick={() => toggleVote(item.id)}>♡ {votes[item.id] ?? 0}</button>
+                    {/snippet}
+                    <MomentsCard item={cardItem} {content} {footer} />
+                {:else}
                 <article class="moment-item card-base">
                     <div class="moment-head">
                         <span class="moment-author">{item.username}</span>
@@ -319,6 +362,7 @@
                         <button type="button" class="moment-vote" class:voted={votes[item.id] !== null && (votes[item.id] ?? 0) > 0} disabled={voting[item.id]} aria-label="点赞" onclick={() => toggleVote(item.id)}>♡ {votes[item.id] ?? 0}</button>
                     </div>
                 </article>
+                {/if}
             {/each}
         </div>
         {/if}

@@ -1,6 +1,8 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import { refreshFancybox } from "@utils/fancybox";
+    import MomentsCard, { type MomentsCardItem } from "./moments/MomentsCard.svelte";
+    import MomentGallery from "./moments/MomentGallery.svelte";
 
     type TgMedia = {
         type: string;
@@ -15,7 +17,7 @@
         media: TgMedia[];
     };
 
-    let { tgUrl = "https://tgtalk.kemiaosw.top", displayName = "", pageSize = 10, voteUrl = "" }: { tgUrl?: string; displayName?: string; pageSize?: number; voteUrl?: string } = $props();
+    let { tgUrl = "https://tgtalk.kemiaosw.top", displayName = "", pageSize = 10, voteUrl = "", cardStyle = "moments", avatar = "" }: { tgUrl?: string; displayName?: string; pageSize?: number; voteUrl?: string; cardStyle?: "moments" | "classic"; avatar?: string } = $props();
 
     let items = $state<TgItem[]>([]);
     let page = $state(1);
@@ -208,6 +210,10 @@
         return Number.isNaN(date.getTime()) ? "时间未知" : date.toLocaleString();
     }
 
+    function toMomentsCardItem(item: TgItem): MomentsCardItem {
+        return { id: item.id, author, avatar, datetime: formatTime(item.datetime), tags: item.tags };
+    }
+
     function handleImageError(event: Event) {
         const img = event.currentTarget as HTMLImageElement;
         const a = img.closest("a[data-fancybox]");
@@ -360,15 +366,6 @@
         updateFilterFromUrl();
     }
 
-    function handleContentKey(event: KeyboardEvent) {
-        if (event.key !== "Enter" && event.key !== " ") return;
-        const target = event.target;
-        if (!(target instanceof Element)) return;
-        const link = target.closest("a");
-        if (!link || !listEl?.contains(link)) return;
-        event.preventDefault();
-        link.click();
-    }
 
     onMount(() => {
         updateFilterFromUrl();
@@ -377,6 +374,8 @@
         return () => window.removeEventListener("popstate", updateFilterFromUrl);
     });
 </script>
+
+<svelte:window onclick={handleContentClick} />
 
 <div class="tg-panel">
     <p class="tg-network-tip">当你看不到图片，说明你是大陆网络，图片依旧来自TG的cdn，故无法显示。</p>
@@ -391,32 +390,49 @@
             <div class="panel-meta filter-meta"><span>当前筛选：#{activeTag}</span><button type="button" class="clear-tag" onclick={() => { const url = new URL(window.location.href); url.searchParams.delete("q"); window.history.pushState({}, "", url); updateFilterFromUrl(); }}>清除筛选</button></div>
         {/if}
         {#if pageItems.length > 0}
-            <div class="tg-timeline" bind:this={listEl} onclick={handleContentClick} onkeydown={handleContentKey} tabindex="0" role="region" aria-label="Diary timeline">
+            <div class="tg-timeline" bind:this={listEl} role="region" aria-label="Diary timeline">
                 {#each pageItems as item (item.id)}
                     {@const group = "tg-" + item.id}
-                    <article class="tg-item card-base">
-                        <div class="tg-head">
-                            <span class="tg-author">{author}</span>
-                            <span class="tg-tags">
-                                {#each item.tags as tag (tag)}<button type="button" class:active={activeTag === normalizeTag(tag)} aria-pressed={activeTag === normalizeTag(tag)} onclick={() => setFilter(tag)}>{tag}</button>{/each}
-                            </span>
-                        </div>
-                        <div class="tg-html prose max-w-none" data-tg-html>{@html sanitizeHtml(item.html, group)}</div>
-                        {#if item.media.length > 0}
-                            <div class="tg-media moment-images">
-                                {#each item.media as media (media.src)}
-                                    <a data-fancybox={group} href={media.src} class="tg-media-link">
-                                        <img src={media.src} alt="TG 图片" loading="lazy" referrerpolicy="no-referrer" onerror={handleImageError} />
-                                    </a>
-                                {/each}
+                    {#if cardStyle === "moments"}
+                        <MomentsCard item={toMomentsCardItem(item)}>
+                            {#snippet content()}
+                                <div class="tg-html prose max-w-none" data-tg-html>{@html sanitizeHtml(item.html, group)}</div>
+                                {#if item.media.length > 0}
+                                    <MomentGallery images={item.media.map((media) => ({ src: media.src, alt: "TG 图片" }))} />
+                                {/if}
+                            {/snippet}
+                            {#snippet footer()}
+                                <span class="tg-tags">
+                                    {#each item.tags as tag (tag)}<button type="button" class:active={activeTag === normalizeTag(tag)} aria-pressed={activeTag === normalizeTag(tag)} onclick={() => setFilter(tag)}>{tag}</button>{/each}
+                                </span>
+                                <button type="button" class="tg-vote" class:voted={votes[item.id] !== null && (votes[item.id] ?? 0) > 0} disabled={voting[item.id] || !voteUrl} aria-label="点赞" onclick={() => toggleVote(item.id)}>♡ {votes[item.id] ?? 0}</button>
+                            {/snippet}
+                        </MomentsCard>
+                    {:else}
+                        <article class="tg-item card-base">
+                            <div class="tg-head">
+                                <span class="tg-author">{author}</span>
+                                <span class="tg-tags">
+                                    {#each item.tags as tag (tag)}<button type="button" class:active={activeTag === normalizeTag(tag)} aria-pressed={activeTag === normalizeTag(tag)} onclick={() => setFilter(tag)}>{tag}</button>{/each}
+                                </span>
                             </div>
-                        {/if}
-                        <hr class="tg-divider" />
-                        <div class="tg-foot">
-                            <time class="tg-time" datetime={item.datetime}>{formatTime(item.datetime)}</time>
-                            <button type="button" class="tg-vote" class:voted={votes[item.id] !== null && (votes[item.id] ?? 0) > 0} disabled={voting[item.id] || !voteUrl} aria-label="点赞" onclick={() => toggleVote(item.id)}>♡ {votes[item.id] ?? 0}</button>
-                        </div>
-                    </article>
+                            <div class="tg-html prose max-w-none" data-tg-html>{@html sanitizeHtml(item.html, group)}</div>
+                            {#if item.media.length > 0}
+                                <div class="tg-media moment-images">
+                                    {#each item.media as media (media.src)}
+                                        <a data-fancybox={group} href={media.src} class="tg-media-link">
+                                            <img src={media.src} alt="TG 图片" loading="lazy" referrerpolicy="no-referrer" onerror={handleImageError} />
+                                        </a>
+                                    {/each}
+                                </div>
+                            {/if}
+                            <hr class="tg-divider" />
+                            <div class="tg-foot">
+                                <time class="tg-time" datetime={item.datetime}>{formatTime(item.datetime)}</time>
+                                <button type="button" class="tg-vote" class:voted={votes[item.id] !== null && (votes[item.id] ?? 0) > 0} disabled={voting[item.id] || !voteUrl} aria-label="点赞" onclick={() => toggleVote(item.id)}>♡ {votes[item.id] ?? 0}</button>
+                            </div>
+                        </article>
+                    {/if}
                 {/each}
             </div>
         {:else}

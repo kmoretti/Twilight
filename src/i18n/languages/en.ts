@@ -22,6 +22,10 @@ export const en: Translation = {
     [Key.postList]: "Post List",
     [Key.statistics]: "Statistics",
     [Key.tableOfContents]: "Table of Contents",
+    [Key.calendarPreviousMonth]: "Previous month",
+    [Key.calendarNextMonth]: "Next month",
+    [Key.calendarReturnToCurrentMonth]: "Return to current month",
+    [Key.calendarPostsOnDate]: "Posts on",
 
     // Page Stats
     [Key.pageViews]: "Views",

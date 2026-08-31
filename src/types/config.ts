@@ -260,6 +260,8 @@ export type NavbarConfig = {
 export type WidgetComponentType =
     | "profile"
     | "announcement"
+    | "clock"
+    | "calendar"
     | "directory"
     | "categories"
     | "tags"
@@ -338,6 +340,23 @@ export type AboutConfig = {
 };
 
 
+export type ClockFallbackLocation = {
+    longitude: number;
+    latitude: number;
+    name: string;
+};
+
+export type ClockConfig = {
+    enable: boolean;
+    amapKey: string;
+    fallbackLocation: ClockFallbackLocation;
+};
+
+export type CalendarConfig = {
+    enable: boolean;
+    startOfWeek: "mon" | "sun";
+};
+
 // 公告配置
 export type AnnouncementConfig = {
     // 公告标题
@@ -395,6 +414,8 @@ export type DiaryConfig = {
     // 每页条数
     pageSize: number;
     voteUrl?: string;
+    // 卡片样式 ("moments" Shirone 风格 | "classic" 经典)
+    cardStyle?: "moments" | "classic";
 };
 
 /**

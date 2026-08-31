@@ -1,0 +1,43 @@
+---
+import { calendarConfig, siteConfig } from "@/config";
+import I18nKey from "@i18n/i18nKey";
+import { langToLocaleMap } from "@i18n/language";
+import { i18n } from "@i18n/translation";
+import { getPostCalendarData } from "@utils/postCalendar";
+import WidgetLayout from "./widgetLayout.astro";
+import CalendarView from "./calendarView.svelte";
+
+interface Props {
+    side?: string;
+    class?: string;
+    style?: string;
+}
+
+if (!calendarConfig.enable) return null;
+
+const { postsByDate, activeMonths } = await getPostCalendarData();
+const { class: className, style, side = "default" } = Astro.props;
+const locale = langToLocaleMap[siteConfig.lang] ?? siteConfig.lang.replace("_", "-");
+const labels = {
+    previousMonth: i18n(I18nKey.calendarPreviousMonth),
+    nextMonth: i18n(I18nKey.calendarNextMonth),
+    returnToCurrentMonth: i18n(I18nKey.calendarReturnToCurrentMonth),
+    postsOnDate: i18n(I18nKey.calendarPostsOnDate),
+};
+---
+
+<WidgetLayout
+    name={i18n(I18nKey.posts)}
+    id={`calendar-${side}`}
+    class={className}
+    style={style}
+>
+    <CalendarView
+        client:idle
+        {locale}
+        startOfWeek={calendarConfig.startOfWeek}
+        {postsByDate}
+        {activeMonths}
+        {labels}
+    />
+</WidgetLayout>

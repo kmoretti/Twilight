@@ -22,6 +22,10 @@ export const zh_hant: Translation = {
     [Key.postList]: "文章列表",
     [Key.statistics]: "統計",
     [Key.tableOfContents]: "目錄",
+    [Key.calendarPreviousMonth]: "上個月",
+    [Key.calendarNextMonth]: "下個月",
+    [Key.calendarReturnToCurrentMonth]: "返回目前月份",
+    [Key.calendarPostsOnDate]: "文章日期",
 
     // 統計
     [Key.pageViews]: "瀏覽量",

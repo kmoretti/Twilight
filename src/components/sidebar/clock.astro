@@ -1,0 +1,330 @@
+﻿---
+import { clockConfig } from "@/config";
+import WidgetLayout from "./widgetLayout.astro";
+
+interface Props {
+    side?: string;
+    class?: string;
+    style?: string;
+}
+
+if (!clockConfig.enable) return null;
+
+const className = Astro.props.class;
+const style = Astro.props.style;
+const side = Astro.props.side;
+const id = `clock-${side || "default"}`;
+---
+
+<WidgetLayout id={id} class={className} style={style}>
+    <section
+        class="amap-clock"
+        data-amap-key={clockConfig.amapKey}
+        data-fallback-longitude={clockConfig.fallbackLocation.longitude}
+        data-fallback-latitude={clockConfig.fallbackLocation.latitude}
+        data-fallback-name={clockConfig.fallbackLocation.name}
+        aria-label="本地时间与天气"
+    >
+        <div class="clock-background">
+            <div class="clock-row clock-row-top">
+                <span class="clock-date" aria-label="日期">日期加载中</span>
+                <span class="clock-humidity" aria-label="湿度">湿度不可用</span>
+            </div>
+            <div class="clock-row clock-row-weather">
+                <span class="clock-weather" aria-label="天气"><span class="weather-symbol" aria-hidden="true">☁</span><span class="weather-description">天气不可用</span><span class="weather-temperature">--°</span></span>
+            </div>
+            <div class="clock-row clock-row-time">
+                <time class="clock-time" aria-label="当前时间">00:00:00</time>
+            </div>
+            <div class="clock-row clock-row-bottom">
+                <span class="clock-wind" aria-label="风向">风向不可用</span>
+                <span class="clock-location" aria-label="当前位置">{clockConfig.fallbackLocation.name}</span>
+                <span class="clock-period" aria-label="上午或下午">AM</span>
+            </div>
+        </div>
+    </section>
+</WidgetLayout>
+
+<script>
+    type ClockState = {
+        timer: number;
+        weatherRequested: boolean;
+    };
+
+    type WeatherPresentation = {
+        symbol: string;
+        accent: string;
+    };
+
+    const clockStates = new WeakMap<HTMLElement, ClockState>();
+    const clockRoots = new Set<HTMLElement>();
+
+    const pad = (value: number) => String(value).padStart(2, "0");
+
+    const getWeatherPresentation = (weather: string): WeatherPresentation => {
+        if (weather.includes("雷")) return { symbol: "⚡", accent: "#8b5cf6" };
+        if (weather.includes("雪")) return { symbol: "❄", accent: "#60a5fa" };
+        if (weather.includes("雨")) return { symbol: "☂", accent: "#3b82f6" };
+        if (weather.includes("雾") || weather.includes("霾")) return { symbol: "≋", accent: "#94a3b8" };
+        if (weather.includes("晴")) return { symbol: "☀", accent: "#f59e0b" };
+        if (weather.includes("多云")) return { symbol: "⛅", accent: "#fbbf24" };
+        if (weather.includes("阴")) return { symbol: "☁", accent: "#64748b" };
+        return { symbol: "☁", accent: "#64748b" };
+    };
+
+    const updateTime = (root: HTMLElement) => {
+        const now = new Date();
+        const weekdays = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
+        const date = root.querySelector<HTMLElement>(".clock-date");
+        const time = root.querySelector<HTMLTimeElement>(".clock-time");
+        const period = root.querySelector<HTMLElement>(".clock-period");
+
+        if (date) date.textContent = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${weekdays[now.getDay()]}`;
+        if (time) time.textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+        if (period) period.textContent = now.getHours() >= 12 ? "PM" : "AM";
+    };
+
+    const getPosition = (longitude: number, latitude: number) => new Promise<{ longitude: number; latitude: number }>((resolve) => {
+        if (!navigator.geolocation) {
+            resolve({ longitude, latitude });
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => resolve({ longitude: position.coords.longitude, latitude: position.coords.latitude }),
+            () => resolve({ longitude, latitude }),
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 300000 },
+        );
+    });
+
+    const fetchWeather = async (root: HTMLElement) => {
+        const key = root.dataset.amapKey || "";
+        const fallbackLongitude = Number(root.dataset.fallbackLongitude);
+        const fallbackLatitude = Number(root.dataset.fallbackLatitude);
+        const fallbackName = root.dataset.fallbackName || "";
+        const location = root.querySelector<HTMLElement>(".clock-location");
+
+        const restoreFallbackLocation = () => {
+            if (location) location.textContent = fallbackName;
+        };
+
+        restoreFallbackLocation();
+        if (!key || !Number.isFinite(fallbackLongitude) || !Number.isFinite(fallbackLatitude)) return;
+
+        const resolveLocation = async (longitude: number, latitude: number) => {
+            try {
+                const regeoUrl = new URL("https://restapi.amap.com/v3/geocode/regeo");
+                regeoUrl.search = new URLSearchParams({
+                    key,
+                    location: `${longitude},${latitude}`,
+                    extensions: "base",
+                    radius: "1000",
+                    output: "JSON",
+                }).toString();
+                const regeoResponse = await fetch(regeoUrl);
+                const regeoData = await regeoResponse.json();
+
+                if (regeoData.status !== "1" || regeoData.infocode !== "10000") return null;
+
+                const component = regeoData.regeocode?.addressComponent;
+                const adcode = component?.adcode;
+                if (!adcode) return null;
+
+                const cityValue = component.city;
+                const city = Array.isArray(cityValue) ? cityValue[0] : cityValue;
+                return { adcode, name: city || component.district || component.province || fallbackName };
+            } catch {
+                return null;
+            }
+        };
+
+        try {
+            const position = await getPosition(fallbackLongitude, fallbackLatitude);
+            let resolved = await resolveLocation(position.longitude, position.latitude);
+            if (!resolved && (position.longitude !== fallbackLongitude || position.latitude !== fallbackLatitude)) {
+                resolved = await resolveLocation(fallbackLongitude, fallbackLatitude);
+            }
+            if (!resolved) return;
+
+            const weatherUrl = new URL("https://restapi.amap.com/v3/weather/weatherInfo");
+            weatherUrl.search = new URLSearchParams({ key, city: resolved.adcode, extensions: "base", output: "JSON" }).toString();
+            const weatherResponse = await fetch(weatherUrl);
+            const weatherData = await weatherResponse.json();
+            const live = weatherData.lives?.[0];
+
+            if (weatherData.status !== "1" || weatherData.infocode !== "10000" || !live) return;
+
+            const presentation = getWeatherPresentation(live.weather || "");
+            const symbol = root.querySelector<HTMLElement>(".weather-symbol");
+            const description = root.querySelector<HTMLElement>(".weather-description");
+            const temperature = root.querySelector<HTMLElement>(".weather-temperature");
+            const humidity = root.querySelector<HTMLElement>(".clock-humidity");
+            const wind = root.querySelector<HTMLElement>(".clock-wind");
+
+            root.style.setProperty("--clock-accent", presentation.accent);
+            if (symbol) symbol.textContent = presentation.symbol;
+            if (description) description.textContent = live.weather || "天气不可用";
+            if (temperature) temperature.textContent = live.temperature ? `${live.temperature}°` : "--°";
+            if (humidity) humidity.textContent = live.humidity ? `湿度 ${live.humidity}%` : "湿度不可用";
+            if (wind) wind.textContent = live.winddirection ? `${live.winddirection}风` : "风向不可用";
+            if (location) location.textContent = live.city || resolved.name;
+        } catch {
+            restoreFallbackLocation();
+        }
+    };
+
+    const isVisible = (root: HTMLElement) => root.getClientRects().length > 0;
+
+    const cleanup = () => {
+        clockRoots.forEach((root) => {
+            if (root.isConnected && isVisible(root)) return;
+
+            const state = clockStates.get(root);
+            if (state) clearInterval(state.timer);
+            clockStates.delete(root);
+            clockRoots.delete(root);
+        });
+    };
+
+    const init = () => {
+        cleanup();
+        document.querySelectorAll<HTMLElement>(".amap-clock").forEach((root) => {
+            if (!isVisible(root) || clockStates.has(root)) return;
+
+            updateTime(root);
+            const state: ClockState = { timer: window.setInterval(() => updateTime(root), 1000), weatherRequested: false };
+            clockStates.set(root, state);
+            clockRoots.add(root);
+
+            if (root.dataset.amapKey) {
+                state.weatherRequested = true;
+                void fetchWeather(root);
+            }
+        });
+    };
+
+    init();
+    window.addEventListener("resize", init);
+    document.addEventListener("astro:page-load", init);
+    document.addEventListener("swup:contentReplaced", init);
+</script>
+
+<style>
+    .amap-clock {
+        --clock-accent: #64748b;
+        margin: 0.9375rem;
+        max-width: calc(100% - 1.875rem);
+        min-width: 0;
+        color: var(--deep-text);
+    }
+
+    .clock-background {
+        min-height: 9.5625rem;
+        padding: 0.75rem 0.875rem;
+        overflow: hidden;
+        border: 1px solid color-mix(in srgb, var(--clock-accent), transparent 72%);
+        border-radius: 0.5rem;
+        background: color-mix(in srgb, var(--card-bg), var(--clock-accent) 4%);
+        box-shadow: inset 0 1px 3px rgb(15 23 42 / 16%), inset 0 0 0 1px rgb(255 255 255 / 35%);
+    }
+
+    .clock-row {
+        display: flex;
+        min-width: 0;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        white-space: nowrap;
+    }
+
+    .clock-row-top,
+    .clock-row-bottom {
+        min-height: 1.75rem;
+        font-size: 0.6875rem;
+        color: var(--content-meta);
+    }
+
+    .clock-row-top {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) max-content;
+    }
+
+    .clock-row-weather {
+        min-height: 1.5rem;
+        justify-content: flex-start;
+    }
+
+    .clock-date,
+    .clock-humidity,
+    .clock-wind,
+    .clock-location,
+    .clock-period,
+    .clock-weather {
+        min-width: 0;
+    }
+
+    .clock-date { font-size: 0.625rem; }
+    .clock-humidity { text-align: right; }
+    .clock-wind { flex: 1 1 0; overflow: hidden; text-overflow: ellipsis; }
+    .clock-location { flex: 1 1 0; overflow: hidden; text-align: center; text-overflow: ellipsis; font-weight: 600; color: var(--deep-text); }
+    .clock-period { flex: 1 1 0; text-align: right; color: var(--clock-accent); font-weight: 700; }
+
+    .clock-weather {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 0.25rem 0.375rem;
+        white-space: normal;
+        color: var(--deep-text);
+    }
+
+    .weather-symbol,
+    .weather-temperature { flex: 0 0 auto; }
+
+    .weather-description { overflow-wrap: anywhere; }
+
+    .weather-symbol {
+        color: var(--clock-accent);
+        font-size: 1rem;
+        line-height: 1;
+    }
+
+    .weather-description,
+    .weather-temperature { overflow: hidden; text-overflow: ellipsis; }
+    .weather-temperature { color: var(--clock-accent); font-weight: 700; }
+
+    .clock-row-time {
+        min-height: 4.75rem;
+        justify-content: center;
+    }
+
+    .clock-time {
+        max-width: 100%;
+        color: var(--clock-accent);
+        font-family: "Cascadia Mono", "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        font-size: clamp(1.75rem, 12vw, 2.375rem);
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+        letter-spacing: -0.08em;
+        line-height: 1.5;
+        text-align: center;
+        text-shadow: 0 0 0.5rem color-mix(in srgb, var(--clock-accent), transparent 45%);
+    }
+
+    :global([data-theme="dark"]) .clock-background,
+    :global(.dark) .clock-background {
+        background: color-mix(in srgb, #111827, var(--clock-accent) 9%);
+        box-shadow: inset 0 1px 4px rgb(0 0 0 / 46%), inset 0 0 0 1px rgb(255 255 255 / 7%);
+    }
+
+    @media (max-width: 1086px) {
+        .clock-humidity { display: none; }
+    }
+
+    @media (max-width: 360px) {
+        .clock-background { padding-inline: 0.625rem; }
+        .clock-time { font-size: 1.875rem; }
+        .clock-row { gap: 0.375rem; }
+    }
+</style>

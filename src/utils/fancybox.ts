@@ -1,6 +1,50 @@
 let fancyboxSelectors: string[] = [];
 let Fancybox: any;
 
+// 公共配置
+const commonConfig = {
+    Thumbs: {
+        autoStart: true,
+        showOnStart: "yes"
+    },
+    Toolbar: {
+        display: {
+            left: ["infobar"],
+            middle: [
+                "zoomIn",
+                "zoomOut",
+                "toggle1to1",
+                "rotateCCW",
+                "rotateCW",
+                "flipX",
+                "flipY",
+            ],
+            right: ["slideshow", "thumbs", "close"],
+        },
+    },
+    animated: true,
+    dragToClose: true,
+    keyboard: {
+        Escape: "close",
+        Delete: "close",
+        Backspace: "close",
+        PageUp: "next",
+        PageDown: "prev",
+        ArrowUp: "next",
+        ArrowDown: "prev",
+        ArrowRight: "next",
+        ArrowLeft: "prev",
+    },
+    fitToView: true,
+    preload: 3,
+    infinite: true,
+    Panzoom: {
+        maxScale: 3,
+        minScale: 1
+    },
+    caption: false,
+};
+
 // 图片灯箱按需加载
 export async function initFancybox() {
     if (typeof document === "undefined") return;
@@ -25,49 +69,6 @@ export async function initFancybox() {
     if (fancyboxSelectors.length > 0) {
         return; // 已经初始化，直接返回
     }
-    // 公共配置
-    const commonConfig = {
-        Thumbs: {
-            autoStart: true,
-            showOnStart: "yes"
-        },
-        Toolbar: {
-            display: {
-                left: ["infobar"],
-                middle: [
-                    "zoomIn",
-                    "zoomOut",
-                    "toggle1to1",
-                    "rotateCCW",
-                    "rotateCW",
-                    "flipX",
-                    "flipY",
-                ],
-                right: ["slideshow", "thumbs", "close"],
-            },
-        },
-        animated: true,
-        dragToClose: true,
-        keyboard: {
-            Escape: "close",
-            Delete: "close",
-            Backspace: "close",
-            PageUp: "next",
-            PageDown: "prev",
-            ArrowUp: "next",
-            ArrowDown: "prev",
-            ArrowRight: "next",
-            ArrowLeft: "prev",
-        },
-        fitToView: true,
-        preload: 3,
-        infinite: true,
-        Panzoom: {
-            maxScale: 3,
-            minScale: 1
-        },
-        caption: false,
-    };
     // 绑定相册/文章图片
     Fancybox.bind(albumImagesSelector, {
         ...commonConfig,
@@ -103,4 +104,20 @@ export function cleanupFancybox() {
 export async function refreshFancybox() {
     cleanupFancybox();
     await initFancybox();
+}
+
+// 编程式打开灯箱
+export async function openFancyboxGallery(images: { src: string; caption?: string }[], index = 0): Promise<void> {
+    if (typeof document === "undefined") return;
+    if (!images || images.length === 0) return;
+    // 按需加载 Fancybox
+    if (!Fancybox) {
+        const mod = await import("@fancyapps/ui");
+        Fancybox = mod.Fancybox;
+        await import("@fancyapps/ui/dist/fancybox/fancybox.css");
+    }
+    Fancybox.show(images, {
+        ...commonConfig,
+        startIndex: index,
+    });
 }

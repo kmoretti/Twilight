@@ -267,6 +267,28 @@ sidebar:
                     mode: "exclude"
                     # 页面路径匹配规则列表 (支持正则字符串)
                     paths: ["^/posts/", "^/archive"]
+            - # 组件 - 时钟 (预设)
+                # 类型
+                type: "clock"
+                # 位置策略 ("top" 顶部固定 | "sticky" 粘性)
+                position: "top"
+                # 页面可见性配置
+                visibility:
+                    # 匹配模式：'include' (包含), 'exclude' (排除)
+                    mode: "exclude"
+                    # 页面路径匹配规则列表 (支持正则字符串)
+                    paths: ["^/posts/", "^/archive"]
+            - # 组件 - 文章日历 (预设)
+                # 类型
+                type: "calendar"
+                # 位置策略 ("top" 顶部固定 | "sticky" 粘性)
+                position: "top"
+                # 页面可见性配置
+                visibility:
+                    # 匹配模式：'include' (包含), 'exclude' (排除)
+                    mode: "exclude"
+                    # 页面路径匹配规则列表 (支持正则字符串)
+                    paths: ["^/posts/", "^/archive"]
             - # 组件 - 文章目录 (预设)
                 # 类型
                 type: "toc"
@@ -360,6 +382,19 @@ announcement:
         url: "/about/"
         # 是否外部链接
         external: false
+
+clock:
+    enable: true
+    amapKey: "9884ba7984222effc554bd086370f997"
+    fallbackLocation:
+        longitude: 118.908493
+        latitude: 32.096168
+        name: "江苏南京栖霞"
+
+# 日历配置
+calendar:
+    enable: true
+    startOfWeek: "mon"
 
 # 首页模块配置
 home:
@@ -508,7 +543,7 @@ musicPlayer:
                 # 时长
                 duration: 146
     # 是否自动播放
-    autoplay: true
+    autoplay: false
 
 # 看板娘配置
 pio:
@@ -559,7 +594,9 @@ friends:
 # 日记/说说配置
 diary:
     # 数据源 ("local" 本地 JSON | "ech0" 远程 Ech0 | "tg" 远程 TG)
-    source: "tg"
+    source: "ech0"
+    # 卡片样式 ("moments" Shirone Moments 风格卡片 | "classic" 经典卡片)
+    cardStyle: "moments"
     # Ech0 远程接口地址
     ech0Url: "https://m.081531.xyz/api/echo/page"
     # TG 远程接口根地址
